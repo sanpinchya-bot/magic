@@ -2,40 +2,67 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MindLink</title>
 
 <style>
-
-body{
-    margin:0;
-    background:black;
-    color:#00ff00;
-    font-family:Arial;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    font-size:38px;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: #00ff66;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  overflow: hidden;
 }
 
-</style>
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
 
+#message {
+  width: 95vw;
+  font-size: clamp(48px, 14vw, 150px);
+  font-weight: bold;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.25; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 0.25; transform: scale(0.98); }
+}
+</style>
 </head>
 
 <body>
 
-Connecting...
+<div id="message">接続中...</div>
 
 <script>
+const message = document.getElementById("message");
 
-setTimeout(()=>{
-    document.body.innerHTML="Reading your thoughts...";
-},2500);
+setTimeout(() => {
+  message.innerHTML = "あなたの<br>思考を<br>読み取り中...";
+}, 2500);
 
-setTimeout(()=>{
-    document.body.innerHTML="♥ 7";
-},5000);
+setTimeout(() => {
+  message.innerHTML = "同期完了";
+}, 5500);
 
+setTimeout(() => {
+  message.innerHTML = "あなたが<br>選んだカードは...";
+}, 8000);
+
+setTimeout(() => {
+  message.innerHTML = "ハートの<br>7";
+}, 11000);
 </script>
 
 </body>
