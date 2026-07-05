@@ -1,102 +1,104 @@
 const coin = document.getElementById("coin");
 
-let targetX = window.innerWidth / 2 - coin.offsetWidth / 2;
-let targetY = window.innerHeight / 2 - coin.offsetHeight / 2;
-let x = targetX;
-let y = targetY;
+let coinSize = 0;
+let targetX = 0;
+let targetY = 0;
+let x = 0;
+let y = 0;
 
 let dragging = false;
 let offsetX = 0;
 let offsetY = 0;
 let gone = false;
 
-// 反応エリア：赤枠イメージ
-function getActiveArea() {
-  return {
-    left: window.innerWidth * 0.18,
-    right: window.innerWidth * 0.86,
-    top: window.innerHeight * 0.12,
-    bottom: window.innerHeight * 0.78
-  };
-}
+function init() {
+    coin.style.display = "block";
 
-function isInsideActiveArea(touch) {
-  const area = getActiveArea();
-  return (
-    touch.clientX >= area.left &&
-    touch.clientX <= area.right &&
-    touch.clientY >= area.top &&
-    touch.clientY <= area.bottom
-  );
-}
+    coinSize = coin.getBoundingClientRect().width;
 
-function showCoin() {
-  coin.style.display = "block";
-  coin.style.left = targetX + "px";
-  coin.style.top = targetY + "px";
-  coin.classList.add("pop");
-}
+    targetX = window.innerWidth / 2 - coinSize / 2;
+    targetY = window.innerHeight / 2 - coinSize / 2;
 
-setTimeout(showCoin, 200);
+    x = targetX;
+    y = targetY;
+
+    coin.style.left = x + "px";
+    coin.style.top = y + "px";
+    coin.classList.add("pop");
+
+    requestAnimationFrame(render);
+}
 
 function render() {
-  x += (targetX - x) * 0.38;
-  y += (targetY - y) * 0.38;
+    x += (targetX - x) * 0.45;
+    y += (targetY - y) * 0.45;
 
-  coin.style.left = x + "px";
-  coin.style.top = y + "px";
+    coin.style.left = x + "px";
+    coin.style.top = y + "px";
 
-  requestAnimationFrame(render);
+    requestAnimationFrame(render);
 }
 
-render();
+function startDrag(clientX, clientY) {
+    if (gone) return;
+
+    dragging = true;
+    offsetX = clientX - targetX;
+    offsetY = clientY - targetY;
+}
+
+function moveDrag(clientX, clientY) {
+    if (!dragging || gone) return;
+
+    targetX = clientX - offsetX;
+    targetY = clientY - offsetY;
+
+    const margin = 80;
+
+    if (
+        targetX < -coinSize - margin ||
+        targetX > window.innerWidth + margin ||
+        targetY < -coinSize - margin ||
+        targetY > window.innerHeight + margin
+    ) {
+        gone = true;
+        dragging = false;
+        coin.classList.add("vanish");
+
+        setTimeout(() => {
+            coin.style.display = "none";
+        }, 250);
+    }
+}
 
 coin.addEventListener("touchstart", (e) => {
-  if (gone) return;
-
-  const touch = e.touches[0];
-
-  // 赤枠エリア外では反応しない
-  if (!isInsideActiveArea(touch)) return;
-
-  dragging = true;
-
-  offsetX = touch.clientX - targetX;
-  offsetY = touch.clientY - targetY;
+    e.preventDefault();
+    const touch = e.touches[0];
+    startDrag(touch.clientX, touch.clientY);
 }, { passive: false });
 
 document.addEventListener("touchmove", (e) => {
-  if (!dragging || gone) return;
-
-  const touch = e.touches[0];
-
-  // 画面下など、赤枠エリア外では動かさない
-  if (!isInsideActiveArea(touch)) return;
-
-  e.preventDefault();
-
-  targetX = touch.clientX - offsetX;
-  targetY = touch.clientY - offsetY;
-
-  const margin = 80;
-
-  // 画面外へ出したら消える
-  if (
-    targetX < -coin.offsetWidth - margin ||
-    targetX > window.innerWidth + margin ||
-    targetY < -coin.offsetHeight - margin ||
-    targetY > window.innerHeight + margin
-  ) {
-    gone = true;
-    dragging = false;
-    coin.classList.add("vanish");
-
-    setTimeout(() => {
-      coin.style.display = "none";
-    }, 250);
-  }
+    e.preventDefault();
+    const touch = e.touches[0];
+    moveDrag(touch.clientX, touch.clientY);
 }, { passive: false });
 
 document.addEventListener("touchend", () => {
-  dragging = false;
+    dragging = false;
+});
+
+coin.addEventListener("mousedown", (e) => {
+    startDrag(e.clientX, e.clientY);
+});
+
+document.addEventListener("mousemove", (e) => {
+    moveDrag(e.clientX, e.clientY);
+});
+
+document.addEventListener("mouseup", () => {
+    dragging = false;
+});
+
+window.addEventListener("load", () => {
+    setTimeout(init, 200);
 });
