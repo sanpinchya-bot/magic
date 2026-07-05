@@ -6,18 +6,22 @@ html, body {
   overflow: hidden;
   background: #000;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #coin {
   position: fixed;
-  left: 50%;
-  top: 50%;
   width: 47mm;
   height: 47mm;
-  display: none;
-  transform: translate(-50%, -50%);
-  user-select: none;
-  -webkit-user-drag: none;
+  left: 50vw;
+  top: 50vh;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  display: block;
+  object-fit: contain;
+  pointer-events: auto;
   touch-action: none;
+  -webkit-user-drag: none;
   z-index: 10;
 }
