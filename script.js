@@ -7,41 +7,63 @@ let targetY = y;
 
 let dragging = false;
 let gone = false;
+let visible = false;
+
 let offsetX = 0;
 let offsetY = 0;
+let scale = 0.2;
+let opacity = 0;
 
-function showCoin() {
-  coin.style.display = "block";
+function updateCoin() {
   coin.style.left = x + "px";
   coin.style.top = y + "px";
+  coin.style.opacity = opacity;
+  coin.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
 
-function render() {
-  x += (targetX - x) * 0.45;
-  y += (targetY - y) * 0.45;
-
-  coin.style.left = x + "px";
-  coin.style.top = y + "px";
-
-  requestAnimationFrame(render);
+function appear() {
+  visible = true;
+  opacity = 1;
+  scale = 1;
+  updateCoin();
 }
 
-function startDrag(clientX, clientY) {
-  if (gone) return;
+function animate() {
+  x += (targetX - x) * 0.55;
+  y += (targetY - y) * 0.55;
+  updateCoin();
+  requestAnimationFrame(animate);
+}
 
+function getPoint(e) {
+  if (e.touches && e.touches.length > 0) {
+    return e.touches[0];
+  }
+  return e;
+}
+
+function startDrag(e) {
+  if (gone || !visible) return;
+  e.preventDefault();
+
+  const p = getPoint(e);
   dragging = true;
-  offsetX = clientX - targetX;
-  offsetY = clientY - targetY;
+
+  offsetX = p.clientX - targetX;
+  offsetY = p.clientY - targetY;
 }
 
-function moveDrag(clientX, clientY) {
+function moveDrag(e) {
   if (!dragging || gone) return;
+  e.preventDefault();
 
-  targetX = clientX - offsetX;
-  targetY = clientY - offsetY;
+  const p = getPoint(e);
 
+  targetX = p.clientX - offsetX;
+  targetY = p.clientY - offsetY;
+
+  const margin = 100;
   const rect = coin.getBoundingClientRect();
-  const margin = 80;
 
   if (
     rect.right < -margin ||
@@ -51,27 +73,25 @@ function moveDrag(clientX, clientY) {
   ) {
     gone = true;
     dragging = false;
-    coin.style.display = "none";
+    opacity = 0;
+    scale = 0.2;
+    updateCoin();
   }
 }
 
-coin.addEventListener("touchstart", e => {
-  e.preventDefault();
-  const t = e.touches[0];
-  startDrag(t.clientX, t.clientY);
-}, { passive: false });
-
-document.addEventListener("touchmove", e => {
-  e.preventDefault();
-  const t = e.touches[0];
-  moveDrag(t.clientX, t.clientY);
-}, { passive: false });
-
-document.addEventListener("touchend", () => {
+function endDrag() {
   dragging = false;
-});
+}
+
+coin.addEventListener("touchstart", startDrag, { passive: false });
+document.addEventListener("touchmove", moveDrag, { passive: false });
+document.addEventListener("touchend", endDrag);
+
+coin.addEventListener("mousedown", startDrag);
+document.addEventListener("mousemove", moveDrag);
+document.addEventListener("mouseup", endDrag);
 
 window.addEventListener("load", () => {
-  setTimeout(showCoin, 200);
-  render();
+  animate();
+  setTimeout(appear, 300);
 });
