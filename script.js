@@ -89,8 +89,9 @@ document.addEventListener("touchend", () => {
 });
 
 window.addEventListener("load", () => {
-  setTimeout(() => {
-    centerCoin();
-    animate();
-  }, 300);
+
+    coin.style.left = "50%";
+    coin.style.top = "50%";
+    coin.style.transform = "translate(-50%,-50%)";
+
 });
