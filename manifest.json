@@ -1,0 +1,16 @@
+{
+  "name": "Coin Magic",
+  "short_name": "CoinMagic",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "coin10.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
