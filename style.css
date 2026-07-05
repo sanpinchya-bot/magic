@@ -10,8 +10,8 @@ html, body {
 
 #coin {
     position: absolute;
-    width: 60mm;
-    height: 60mm;
+    width: 100mm;
+    height: 100mm;
 
     display: none;
 
