@@ -12,16 +12,14 @@ html, body {
 
 #coin {
   position: fixed;
-  width: 47mm;
-  height: 47mm;
-  left: 50vw;
-  top: 50vh;
-  transform: translate(-50%, -50%) scale(0.2);
-  opacity: 0;
+  left: 0;
+  top: 0;
+  width: 40mm;
+  height: 40mm;
   display: block;
   object-fit: contain;
-  pointer-events: auto;
   touch-action: none;
   -webkit-user-drag: none;
+  user-select: none;
   z-index: 10;
 }
