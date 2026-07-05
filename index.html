@@ -1,50 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-
-    <title>Coin Magic</title>
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-
-    <meta name="theme-color" content="#000000">
-
-    <!-- iPhone -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Coin Magic">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>Coin Magic</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
-    <!-- コイン -->
-    <img id="coin" src="coin10.png" draggable="false">
-
-    <!-- JavaScript -->
-    <script src="script.js"></script>
-
-    <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(() => {
-                    console.log("Service Worker Registered");
-                })
-                .catch(err => {
-                    console.log(err);
-                });
-        }
-    </script>
-
+  <img id="coin" src="coin10.png" draggable="false" alt="coin">
+  <script src="script.js"></script>
 </body>
-
 </html>
