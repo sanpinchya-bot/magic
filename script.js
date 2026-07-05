@@ -1,97 +1,241 @@
-const coin = document.getElementById("coin");
+(() => {
+  "use strict";
 
-let x = 0;
-let y = 0;
-let targetX = 0;
-let targetY = 0;
+  const coin = document.getElementById("coin");
 
-let dragging = false;
-let gone = false;
-let offsetX = 0;
-let offsetY = 0;
+  const state = {
+    x: 0,
+    y: 0,
+    dragging: false,
+    offsetX: 0,
+    offsetY: 0,
+    hidden: false,
+  };
 
-function screenWidth() {
-  return window.visualViewport ? window.visualViewport.width : window.innerWidth;
-}
-
-function screenHeight() {
-  return window.visualViewport ? window.visualViewport.height : window.innerHeight;
-}
-
-function coinSize() {
-  return coin.getBoundingClientRect().width;
-}
-
-function setCoinPosition() {
-  const size = coinSize();
-  coin.style.transform =
-    `translate3d(${x - size / 2}px, ${y - size / 2}px, 0)`;
-}
-
-function centerCoin() {
-  x = screenWidth() / 2;
-  y = screenHeight() / 2;
-  targetX = x;
-  targetY = y;
-  setCoinPosition();
-}
-
-function animate() {
-  x += (targetX - x) * 0.65;
-  y += (targetY - y) * 0.65;
-  setCoinPosition();
-  requestAnimationFrame(animate);
-}
-
-function startDrag(clientX, clientY) {
-  if (gone) return;
-
-  dragging = true;
-  offsetX = clientX - targetX;
-  offsetY = clientY - targetY;
-}
-
-function moveDrag(clientX, clientY) {
-  if (!dragging || gone) return;
-
-  targetX = clientX - offsetX;
-  targetY = clientY - offsetY;
-
-  const size = coinSize();
-  const margin = 80;
-
-  if (
-    targetX < -size - margin ||
-    targetX > screenWidth() + size + margin ||
-    targetY < -size - margin ||
-    targetY > screenHeight() + size + margin
-  ) {
-    gone = true;
-    dragging = false;
-    coin.style.display = "none";
+  function preventDefault(event) {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
   }
-}
 
-coin.addEventListener("touchstart", e => {
-  e.preventDefault();
-  const t = e.touches[0];
-  startDrag(t.clientX, t.clientY);
-}, { passive: false });
+  function getViewportSize() {
+    return {
+      width: window.innerWidth || document.documentElement.clientWidth,
+      height: window.innerHeight || document.documentElement.clientHeight,
+    };
+  }
 
-document.addEventListener("touchmove", e => {
-  e.preventDefault();
-  const t = e.touches[0];
-  moveDrag(t.clientX, t.clientY);
-}, { passive: false });
+  function getCoinSize() {
+    const rect = coin.getBoundingClientRect();
 
-document.addEventListener("touchend", () => {
-  dragging = false;
-});
+    return {
+      width: rect.width || 90,
+      height: rect.height || 90,
+    };
+  }
 
-window.addEventListener("load", () => {
+  function setCoinPosition(x, y) {
+    state.x = x;
+    state.y = y;
 
-    coin.style.left = "50%";
-    coin.style.top = "50%";
-    coin.style.transform = "translate(-50%,-50%)";
+    coin.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+  }
 
-});
+  function centerCoin() {
+    if (state.dragging || state.hidden) return;
+
+    const viewport = getViewportSize();
+    const size = getCoinSize();
+
+    const x = (viewport.width - size.width) / 2;
+    const y = (viewport.height - size.height) / 2;
+
+    setCoinPosition(x, y);
+  }
+
+  function showCoin() {
+    state.hidden = false;
+    coin.classList.remove("is-hidden");
+    coin.classList.add("is-visible");
+  }
+
+  function hideCoin() {
+    state.hidden = true;
+    state.dragging = false;
+
+    coin.classList.remove("is-visible");
+    coin.classList.remove("is-dragging");
+    coin.classList.add("is-hidden");
+  }
+
+  function isCoinOutsideScreen() {
+    const viewport = getViewportSize();
+    const size = getCoinSize();
+
+    const margin = Math.min(size.width, size.height) * 0.35;
+
+    return (
+      state.x + size.width < -margin ||
+      state.y + size.height < -margin ||
+      state.x > viewport.width + margin ||
+      state.y > viewport.height + margin
+    );
+  }
+
+  function startDrag(clientX, clientY) {
+    if (state.hidden) return;
+
+    const rect = coin.getBoundingClientRect();
+
+    state.dragging = true;
+    state.offsetX = clientX - rect.left;
+    state.offsetY = clientY - rect.top;
+
+    coin.classList.add("is-dragging");
+  }
+
+  function moveDrag(clientX, clientY) {
+    if (!state.dragging) return;
+
+    const x = clientX - state.offsetX;
+    const y = clientY - state.offsetY;
+
+    setCoinPosition(x, y);
+
+    if (isCoinOutsideScreen()) {
+      hideCoin();
+    }
+  }
+
+  function endDrag() {
+    if (!state.dragging) return;
+
+    state.dragging = false;
+    coin.classList.remove("is-dragging");
+
+    if (isCoinOutsideScreen()) {
+      hideCoin();
+    }
+  }
+
+  function getTouchPoint(event) {
+    const touch = event.touches[0] || event.changedTouches[0];
+
+    return {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+  }
+
+  /*
+   * iPhone Safari 対策：
+   * Pointer Events ではなく Touch Events を明示的に使う。
+   */
+  coin.addEventListener(
+    "touchstart",
+    (event) => {
+      preventDefault(event);
+
+      const point = getTouchPoint(event);
+      startDrag(point.x, point.y);
+    },
+    { passive: false }
+  );
+
+  window.addEventListener(
+    "touchmove",
+    (event) => {
+      preventDefault(event);
+
+      if (!state.dragging) return;
+
+      const point = getTouchPoint(event);
+      moveDrag(point.x, point.y);
+    },
+    { passive: false }
+  );
+
+  window.addEventListener(
+    "touchend",
+    (event) => {
+      preventDefault(event);
+      endDrag();
+    },
+    { passive: false }
+  );
+
+  window.addEventListener(
+    "touchcancel",
+    (event) => {
+      preventDefault(event);
+      endDrag();
+    },
+    { passive: false }
+  );
+
+  /*
+   * PCブラウザ用マウス操作
+   */
+  coin.addEventListener("mousedown", (event) => {
+    preventDefault(event);
+    startDrag(event.clientX, event.clientY);
+  });
+
+  window.addEventListener("mousemove", (event) => {
+    if (!state.dragging) return;
+
+    preventDefault(event);
+    moveDrag(event.clientX, event.clientY);
+  });
+
+  window.addEventListener("mouseup", (event) => {
+    preventDefault(event);
+    endDrag();
+  });
+
+  /*
+   * ページ全体のスクロール・長押しメニュー対策
+   */
+  document.addEventListener("touchmove", preventDefault, { passive: false });
+
+  window.addEventListener("contextmenu", (event) => {
+    preventDefault(event);
+  });
+
+  /*
+   * 初期表示：
+   * コイン画像の読み込み後、画面中央に表示する。
+   */
+  function initialize() {
+    centerCoin();
+
+    requestAnimationFrame(() => {
+      showCoin();
+    });
+  }
+
+  if (coin.complete) {
+    initialize();
+  } else {
+    coin.addEventListener("load", initialize, { once: true });
+  }
+
+  /*
+   * 画面回転・アドレスバー変化対策
+   */
+  let resizeTimer = null;
+
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+
+    resizeTimer = setTimeout(() => {
+      centerCoin();
+    }, 200);
+  });
+
+  window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+      centerCoin();
+    }, 400);
+  });
+})();
