@@ -17,7 +17,7 @@ function showCoin() {
   coin.classList.add("pop");
 }
 
-setTimeout(showCoin, 700);
+setTimeout(showCoin, 200);
 
 function render() {
   x += (targetX - x) * 0.38;
