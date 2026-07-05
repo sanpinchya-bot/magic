@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MindLink</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Coin Transfer</title>
 
 <style>
 html, body {
@@ -11,58 +11,194 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
-  background: black;
-  color: #00ff66;
-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: radial-gradient(circle at center, #07140d 0%, #020403 45%, #000 100%);
   overflow: hidden;
+  touch-action: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  color: white;
 }
 
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+#title {
+  position: fixed;
+  top: 6vh;
+  width: 100%;
   text-align: center;
+  font-size: 11vw;
+  letter-spacing: 0.12em;
+  color: #f4d27a;
+  text-shadow: 0 0 18px #b8860b;
 }
 
 #message {
-  width: 95vw;
-  font-size: clamp(48px, 14vw, 150px);
+  position: fixed;
+  top: 24vh;
+  width: 100%;
+  text-align: center;
+  font-size: 8vw;
   font-weight: bold;
-  line-height: 1.25;
-  letter-spacing: 0.04em;
-  animation: pulse 1.5s infinite;
+  line-height: 1.5;
+  text-shadow: 0 0 16px white;
 }
 
-@keyframes pulse {
-  0% { opacity: 0.25; transform: scale(0.98); }
-  50% { opacity: 1; transform: scale(1.03); }
-  100% { opacity: 0.25; transform: scale(0.98); }
+#barBox {
+  position: fixed;
+  top: 47vh;
+  left: 10vw;
+  width: 80vw;
+  height: 18px;
+  border: 1px solid rgba(255, 210, 90, 0.7);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+#bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #fff1a8, #ffb300);
+  box-shadow: 0 0 18px #ffcc33;
+  animation: loading 4s forwards;
+}
+
+@keyframes loading {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+#coin {
+  position: absolute;
+  width: 34vw;
+  height: 34vw;
+  max-width: 170px;
+  max-height: 170px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #fff0a0 0%, #d99028 30%, #9a5a13 65%, #5c3108 100%);
+  box-shadow:
+    0 0 35px rgba(255, 200, 80, 0.8),
+    inset 0 0 18px rgba(60, 30, 0, 0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #5b2f05;
+  font-size: 17vw;
+  font-weight: 900;
+  user-select: none;
+  z-index: 5;
+}
+
+#coin::before {
+  content: "10";
+  text-shadow: 1px 1px 0 #ffd98a;
+}
+
+#coin::after {
+  content: "";
+  position: absolute;
+  width: 82%;
+  height: 82%;
+  border-radius: 50%;
+  border: 5px double rgba(80, 40, 0, 0.55);
+}
+
+#hint {
+  position: fixed;
+  bottom: 7vh;
+  width: 100%;
+  text-align: center;
+  font-size: 5vw;
+  color: rgba(255,255,255,0.85);
+  display: none;
+}
+
+.spin {
+  animation: spin 0.65s linear;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(720deg) scale(1.08); }
 }
 </style>
 </head>
 
 <body>
 
-<div id="message">接続中...</div>
+<div id="title">COIN TRANSFER</div>
+<div id="message">金属を<br>検出中...</div>
+
+<div id="barBox"><div id="bar"></div></div>
+
+<div id="coin"></div>
+<div id="hint">指でコインを動かせます<br>タップすると回転します</div>
 
 <script>
 const message = document.getElementById("message");
+const coin = document.getElementById("coin");
+const hint = document.getElementById("hint");
+const barBox = document.getElementById("barBox");
+
+let x = window.innerWidth / 2 - 80;
+let y = window.innerHeight * 0.60;
+let dragging = false;
+let offsetX = 0;
+let offsetY = 0;
+let targetX = x;
+let targetY = y;
+
+function setCoinPosition() {
+  x += (targetX - x) * 0.35;
+  y += (targetY - y) * 0.35;
+  coin.style.left = x + "px";
+  coin.style.top = y + "px";
+  requestAnimationFrame(setCoinPosition);
+}
+
+setCoinPosition();
 
 setTimeout(() => {
-  message.innerHTML = "あなたの<br>思考を<br>読み取り中...";
-}, 2500);
+  message.innerHTML = "コインを<br>転送中...";
+}, 1800);
 
 setTimeout(() => {
-  message.innerHTML = "同期完了";
-}, 5500);
+  message.innerHTML = "転送成功";
+  message.style.color = "#7CFF8A";
+  message.style.textShadow = "0 0 18px #00ff66";
+}, 4200);
 
 setTimeout(() => {
-  message.innerHTML = "あなたが<br>選んだカードは...";
-}, 8000);
+  message.style.display = "none";
+  barBox.style.display = "none";
+  coin.style.display = "flex";
+  hint.style.display = "block";
+}, 5200);
 
-setTimeout(() => {
-  message.innerHTML = "ハートの<br>7";
-}, 11000);
+coin.addEventListener("touchstart", e => {
+  dragging = true;
+  const touch = e.touches[0];
+  offsetX = touch.clientX - targetX;
+  offsetY = touch.clientY - targetY;
+}, { passive: false });
+
+document.addEventListener("touchmove", e => {
+  if (!dragging) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  targetX = touch.clientX - offsetX;
+  targetY = touch.clientY - offsetY;
+
+  targetX = Math.max(0, Math.min(window.innerWidth - coin.offsetWidth, targetX));
+  targetY = Math.max(0, Math.min(window.innerHeight - coin.offsetHeight, targetY));
+}, { passive: false });
+
+document.addEventListener("touchend", () => {
+  dragging = false;
+});
+
+coin.addEventListener("click", () => {
+  coin.classList.remove("spin");
+  void coin.offsetWidth;
+  coin.classList.add("spin");
+});
 </script>
 
 </body>
