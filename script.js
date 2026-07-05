@@ -7,12 +7,10 @@ let targetY = y;
 
 let dragging = false;
 let gone = false;
-let visible = false;
-
 let offsetX = 0;
 let offsetY = 0;
-let scale = 0.2;
-let opacity = 0;
+let scale = 1;
+let opacity = 1;
 
 function updateCoin() {
   coin.style.left = x + "px";
@@ -21,32 +19,18 @@ function updateCoin() {
   coin.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
 
-function appear() {
-  visible = true;
-  opacity = 1;
-  scale = 1;
-  updateCoin();
-}
-
 function animate() {
-  x += (targetX - x) * 0.55;
-  y += (targetY - y) * 0.55;
+  x += (targetX - x) * 0.6;
+  y += (targetY - y) * 0.6;
   updateCoin();
   requestAnimationFrame(animate);
 }
 
-function getPoint(e) {
-  if (e.touches && e.touches.length > 0) {
-    return e.touches[0];
-  }
-  return e;
-}
-
 function startDrag(e) {
-  if (gone || !visible) return;
+  if (gone) return;
   e.preventDefault();
 
-  const p = getPoint(e);
+  const p = e.touches ? e.touches[0] : e;
   dragging = true;
 
   offsetX = p.clientX - targetX;
@@ -57,13 +41,13 @@ function moveDrag(e) {
   if (!dragging || gone) return;
   e.preventDefault();
 
-  const p = getPoint(e);
+  const p = e.touches ? e.touches[0] : e;
 
   targetX = p.clientX - offsetX;
   targetY = p.clientY - offsetY;
 
-  const margin = 100;
   const rect = coin.getBoundingClientRect();
+  const margin = 120;
 
   if (
     rect.right < -margin ||
@@ -73,9 +57,7 @@ function moveDrag(e) {
   ) {
     gone = true;
     dragging = false;
-    opacity = 0;
-    scale = 0.2;
-    updateCoin();
+    coin.style.display = "none";
   }
 }
 
@@ -92,6 +74,7 @@ document.addEventListener("mousemove", moveDrag);
 document.addEventListener("mouseup", endDrag);
 
 window.addEventListener("load", () => {
+  coin.style.display = "block";
+  updateCoin();
   animate();
-  setTimeout(appear, 300);
 });
