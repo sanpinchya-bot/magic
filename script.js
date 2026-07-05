@@ -1,59 +1,70 @@
 const coin = document.getElementById("coin");
 
-let x = window.innerWidth / 2;
-let y = window.innerHeight / 2;
-let targetX = x;
-let targetY = y;
+let x = 0;
+let y = 0;
+let targetX = 0;
+let targetY = 0;
 
 let dragging = false;
 let gone = false;
 let offsetX = 0;
 let offsetY = 0;
-let scale = 1;
-let opacity = 1;
 
-function updateCoin() {
-  coin.style.left = x + "px";
-  coin.style.top = y + "px";
-  coin.style.opacity = opacity;
-  coin.style.transform = `translate(-50%, -50%) scale(${scale})`;
+function screenWidth() {
+  return window.visualViewport ? window.visualViewport.width : window.innerWidth;
+}
+
+function screenHeight() {
+  return window.visualViewport ? window.visualViewport.height : window.innerHeight;
+}
+
+function coinSize() {
+  return coin.getBoundingClientRect().width;
+}
+
+function setCoinPosition() {
+  const size = coinSize();
+  coin.style.transform =
+    `translate3d(${x - size / 2}px, ${y - size / 2}px, 0)`;
+}
+
+function centerCoin() {
+  x = screenWidth() / 2;
+  y = screenHeight() / 2;
+  targetX = x;
+  targetY = y;
+  setCoinPosition();
 }
 
 function animate() {
-  x += (targetX - x) * 0.6;
-  y += (targetY - y) * 0.6;
-  updateCoin();
+  x += (targetX - x) * 0.65;
+  y += (targetY - y) * 0.65;
+  setCoinPosition();
   requestAnimationFrame(animate);
 }
 
-function startDrag(e) {
+function startDrag(clientX, clientY) {
   if (gone) return;
-  e.preventDefault();
 
-  const p = e.touches ? e.touches[0] : e;
   dragging = true;
-
-  offsetX = p.clientX - targetX;
-  offsetY = p.clientY - targetY;
+  offsetX = clientX - targetX;
+  offsetY = clientY - targetY;
 }
 
-function moveDrag(e) {
+function moveDrag(clientX, clientY) {
   if (!dragging || gone) return;
-  e.preventDefault();
 
-  const p = e.touches ? e.touches[0] : e;
+  targetX = clientX - offsetX;
+  targetY = clientY - offsetY;
 
-  targetX = p.clientX - offsetX;
-  targetY = p.clientY - offsetY;
-
-  const rect = coin.getBoundingClientRect();
-  const margin = 120;
+  const size = coinSize();
+  const margin = 80;
 
   if (
-    rect.right < -margin ||
-    rect.left > window.innerWidth + margin ||
-    rect.bottom < -margin ||
-    rect.top > window.innerHeight + margin
+    targetX < -size - margin ||
+    targetX > screenWidth() + size + margin ||
+    targetY < -size - margin ||
+    targetY > screenHeight() + size + margin
   ) {
     gone = true;
     dragging = false;
@@ -61,20 +72,25 @@ function moveDrag(e) {
   }
 }
 
-function endDrag() {
+coin.addEventListener("touchstart", e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  startDrag(t.clientX, t.clientY);
+}, { passive: false });
+
+document.addEventListener("touchmove", e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  moveDrag(t.clientX, t.clientY);
+}, { passive: false });
+
+document.addEventListener("touchend", () => {
   dragging = false;
-}
-
-coin.addEventListener("touchstart", startDrag, { passive: false });
-document.addEventListener("touchmove", moveDrag, { passive: false });
-document.addEventListener("touchend", endDrag);
-
-coin.addEventListener("mousedown", startDrag);
-document.addEventListener("mousemove", moveDrag);
-document.addEventListener("mouseup", endDrag);
+});
 
 window.addEventListener("load", () => {
-  coin.style.display = "block";
-  updateCoin();
-  animate();
+  setTimeout(() => {
+    centerCoin();
+    animate();
+  }, 300);
 });
