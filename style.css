@@ -1,7 +1,7 @@
 
 :root {
   /* コインサイズ。数字を大きくするとコインも大きくなる */
-  --coin-size: 50mm;
+  --coin-size: 65mm;
 }
 
 html,
