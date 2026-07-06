@@ -2,6 +2,7 @@
   "use strict";
 
   const coin = document.getElementById("coin");
+  const coinSound = document.getElementById("coinSound");
 
   const state = {
     x: 0,
@@ -10,6 +11,7 @@
     offsetX: 0,
     offsetY: 0,
     hidden: false,
+    pendingCoinSound: false,
   };
 
   function preventDefault(event) {
@@ -53,10 +55,40 @@
     setCoinPosition(x, y);
   }
 
+  /*
+   * コインのチャリン音
+   *
+   * 注意：
+   * iPhone Safariでは、ページを開いただけの自動再生はブロックされることがあります。
+   * その場合は、最初に画面をタッチしたタイミングで音が鳴ります。
+   */
+  function playCoinSound() {
+    if (!coinSound) return;
+
+    coinSound.currentTime = 0;
+
+    const playPromise = coinSound.play();
+
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        state.pendingCoinSound = true;
+      });
+    }
+  }
+
+  function playPendingCoinSound() {
+    if (!state.pendingCoinSound) return;
+
+    state.pendingCoinSound = false;
+    playCoinSound();
+  }
+
   function showCoin() {
     state.hidden = false;
     coin.classList.remove("is-hidden");
     coin.classList.add("is-visible");
+
+    playCoinSound();
   }
 
   function hideCoin() {
@@ -83,6 +115,8 @@
   }
 
   function startDrag(clientX, clientY) {
+    playPendingCoinSound();
+
     if (state.hidden) return;
 
     const rect = coin.getBoundingClientRect();
