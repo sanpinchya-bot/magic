@@ -10,8 +10,8 @@
     dragging: false,
     offsetX: 0,
     offsetY: 0,
-    hidden: false,
-    pendingCoinSound: false,
+    hidden: true,
+    started: false,
   };
 
   function preventDefault(event) {
@@ -44,7 +44,7 @@
   }
 
   function centerCoin() {
-    if (state.dragging || state.hidden) return;
+    if (state.dragging) return;
 
     const viewport = getViewportSize();
     const size = getCoinSize();
@@ -55,36 +55,29 @@
     setCoinPosition(x, y);
   }
 
-  /*
-   * コインのチャリン音
-   *
-   * 注意：
-   * iPhone Safariでは、ページを開いただけの自動再生はブロックされることがあります。
-   * その場合は、最初に画面をタッチしたタイミングで音が鳴ります。
-   */
   function playCoinSound() {
     if (!coinSound) return;
 
-    coinSound.currentTime = 0;
+    try {
+      coinSound.pause();
+      coinSound.currentTime = 0;
+      coinSound.volume = 1;
+    } catch (error) {
+      return;
+    }
 
     const playPromise = coinSound.play();
 
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch(() => {
-        state.pendingCoinSound = true;
+        // iPhone Safariなどでブロックされた場合は何もしない
       });
     }
   }
 
-  function playPendingCoinSound() {
-    if (!state.pendingCoinSound) return;
-
-    state.pendingCoinSound = false;
-    playCoinSound();
-  }
-
   function showCoin() {
     state.hidden = false;
+
     coin.classList.remove("is-hidden");
     coin.classList.add("is-visible");
 
@@ -98,6 +91,15 @@
     coin.classList.remove("is-visible");
     coin.classList.remove("is-dragging");
     coin.classList.add("is-hidden");
+  }
+
+  function startApp() {
+    if (state.started) return;
+
+    state.started = true;
+
+    centerCoin();
+    showCoin();
   }
 
   function isCoinOutsideScreen() {
@@ -115,7 +117,10 @@
   }
 
   function startDrag(clientX, clientY) {
-    playPendingCoinSound();
+    if (!state.started) {
+      startApp();
+      return;
+    }
 
     if (state.hidden) return;
 
@@ -163,9 +168,9 @@
 
   /*
    * iPhone Safari 対策：
-   * Pointer Events ではなく Touch Events を明示的に使う。
+   * 最初の画面タップでコイン登場＋音再生。
    */
-  coin.addEventListener(
+  window.addEventListener(
     "touchstart",
     (event) => {
       preventDefault(event);
@@ -210,7 +215,7 @@
   /*
    * PCブラウザ用マウス操作
    */
-  coin.addEventListener("mousedown", (event) => {
+  window.addEventListener("mousedown", (event) => {
     preventDefault(event);
     startDrag(event.clientX, event.clientY);
   });
@@ -238,14 +243,11 @@
 
   /*
    * 初期表示：
-   * コイン画像の読み込み後、画面中央に表示する。
+   * コイン画像の読み込み後、中央位置に準備して非表示にする。
    */
   function initialize() {
     centerCoin();
-
-    requestAnimationFrame(() => {
-      showCoin();
-    });
+    hideCoin();
   }
 
   if (coin.complete) {
